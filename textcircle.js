@@ -1,5 +1,6 @@
 this.Documents = new Mongo.Collection("documents");
 EditingUsers = new Mongo.Collection("editingUsers");
+
 if (Meteor.isClient) {
 // find the first document in the Documents colleciton and send back its id
   Template.editor.helpers({
@@ -25,7 +26,24 @@ if (Meteor.isClient) {
       }
     }, 
   });
-}
+
+  Template.editingUsers.helpers({
+  	users:function(){
+  		var doc, eusers, users;
+  		doc = Documents.findOne();
+  		if(!doc){return;} //no doc
+  		eusers = EditingUsers.findOne({docid:doc._id});
+  		if(!eusers){return;} //no users are editing currently
+  		users = new Array();
+  		var i = 0;
+  		for(var user_id in eusers.users){
+  			users[i] = eusers.users[user_id];
+  			i++;
+  		}
+  		return users;
+  	}
+  })
+}//end of is isClient block
 
 if (Meteor.isServer) {
   Meteor.startup(function () {
