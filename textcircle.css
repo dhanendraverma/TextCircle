@@ -2,3 +2,8 @@
 	margin-top: 50px;
 }
 
+#viewr_iframe{
+	border: 1px solid grey;
+	resize: both;
+	width: 100%;
+}

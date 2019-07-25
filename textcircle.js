@@ -17,7 +17,8 @@ if (Meteor.isClient) {
     // you might also want to experiment with the ACE editor
     config:function(){
       return function(editor){
-        editor.setOption("mode", "html");
+        editor.setOption("lineNumber", true);
+        editor.setOption("theme","cobalt");
         editor.on("change", function(cm_editor, info){
           //console.log(cm_editor.getValue());
           $("#viewer_iframe").contents().find("html").html(cm_editor.getValue());

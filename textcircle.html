@@ -37,7 +37,8 @@
 </template>
 
 <template name="editingUsers">
+	Editors:
 	{{#each users}}
-	{{lastEdit}}
+	<span class="label label-success">{{lastEdit}}</span>
 	{{/each}}
 </template>
