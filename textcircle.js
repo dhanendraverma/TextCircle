@@ -50,13 +50,19 @@ if (Meteor.isClient) {
     }
   })
 
+Template.navbar.helpers({
+  documents:function(){
+    return Documents.find({});
+  }
+})
+
 
 
 /////////
 ////events
 /////////
 Template.navbar.events({
-  "click .js-add-doc":function(events){
+  "click .js-add-doc":function(event){
     event.preventDefault();
     console.log("add new doc")
     if(!Meteor.users()){ user is not logged in
@@ -70,9 +76,11 @@ Template.navbar.events({
              Session.set("docid",res);
         }
       })
-   
-
     }
+  }
+  
+  "click .js-load-doc":function(event){
+    Session.set("docid",res);
   }
 })
 
