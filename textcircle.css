@@ -1,9 +1,11 @@
+/* CSS declarations go here */
+
 .top-margin{
-	margin-top: 50px;
+	margin-top:50px;
 }
 
-#viewr_iframe{
-	border: 1px solid grey;
-	resize: both;
-	width: 100%;
+#viewer_iframe{
+	border:1px solid gray;
+	resize:both;
+	width:100%;
 }

@@ -48,7 +48,28 @@ if (Meteor.isClient) {
       return users;
     }
   })
- 
+
+
+
+/////////
+////events
+/////////
+Template.navbar.events({
+  "click .js-add-doc":function(events){
+    event.preventDefault();
+    console.log("add new doc")
+    if(!Meteor.users()){ user is not logged in
+      alert("You need to login")
+    }
+    else {
+      //they are logged in... lets insert a doc
+      Meteor.call("addDoc")
+
+    }
+  }
+})
+
+
 }// end isClient...
 
 if (Meteor.isServer) {
@@ -61,6 +82,21 @@ if (Meteor.isServer) {
 }
 // methods that provide write access to the data
 Meteor.methods({
+  //adding new documents
+  addDoc:function(){
+    var doc;
+    if(!this.userId){//not logged in
+      return;
+    }
+    else{
+      doc = {owner:this.userId, createdOn: new Date(), title:"my new doc"};
+      Documents.insert(doc);
+    }
+  },
+
+
+
+
   // allows changes to the editing users collection 
   addEditingUser:function(){
     var doc, user, eusers;
@@ -93,3 +129,9 @@ function fixObjectKeys(obj){
   }
   return newObj;
 }
+
+  
+
+
+
+
