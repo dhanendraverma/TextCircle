@@ -7,7 +7,8 @@ if (Meteor.isClient) {
   // return the id of the first document you can find
   Template.editor.helpers({
     docid:function(){
-      var doc = Documents.findOne();
+      setupCurrentDocument();
+      return Session.get("docid");
       if (doc){
         return doc._id;
       }
@@ -63,7 +64,13 @@ Template.navbar.events({
     }
     else {
       //they are logged in... lets insert a doc
-      Meteor.call("addDoc")
+      var id = Meteor.call("addDoc",function(err,res){
+        if(!err){//all goood
+             console.log("event callback got an id back"+res);
+             Session.set("docid",res);
+        }
+      })
+   
 
     }
   }
@@ -90,7 +97,9 @@ Meteor.methods({
     }
     else{
       doc = {owner:this.userId, createdOn: new Date(), title:"my new doc"};
-      Documents.insert(doc);
+      var id = Documents.insert(doc);
+      console.log("adddoc docid"+id);
+      return id;
     }
   },
 
@@ -118,6 +127,20 @@ Meteor.methods({
     EditingUsers.upsert({_id:eusers._id}, eusers);
   }
 })
+
+function setupCurrentDocument(){
+  var doc;
+  if(!session.get(docid)){ //no docid set yet
+    doc = Documents.findOne();
+    if(doc){
+      Session.set("docid", doc._id);
+    }
+
+  }
+}
+
+
+
 
 // this renames object keys by removing hyphens to make the compatible 
 // with spacebars. 
