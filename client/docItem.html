@@ -1,15 +1,17 @@
 <template name="docItem">
-  <div class="container top-margin">
+<div class="container top-margin">
     <div class="row">
       <div class="col-md-12">
           {{> docMeta}}
       </div>
     </div>
+
     <div class="row">
       <div class="col-md-12">
           {{> editingUsers}}
       </div>
     </div>
+
     <div class="row">
       <div class="col-md-6">
           {{> editor}}
@@ -18,9 +20,16 @@
         {{> viewer}}
       </div>
     </div>
-    {{> inserCommentForm}}
-  </div> <!--end of docItem container-->
+    {{> commentList}}
+
+    {{> insertCommentForm}}
+
+  </div><!-- end of docItem container -->
+
 </template>
+
+
+
 
 
 <template name="editor">  
@@ -55,7 +64,31 @@
   {{/each}}
 </template>
 
+<template name="commentList">
+  {{#each comments}}
+  <ul>
+    <li>{{title}}
+      <p>{{body}}</p>
+    </li>
+  </ul>
+  {{/each}}
+</template>
 
-<template name="inserCommentForm">
-  {{> quickForm collection="Comments" id="inserCommentForm" type="method" meteormethod="addComment"}}
+
+<template name="insertCommentForm2">
+  {{> quickForm collection="Comments" id="insertCommentForm" type="method" meteormethod="addComment"}}
+</template>
+
+<template name="insertCommentForm">
+    {{#autoForm collection="Comments" id="insertCommentForm" type="method" meteormethod="addComment"}}
+    <fieldset>
+      <legend>Comment</legend>
+      {{> afQuickField name='title'}}
+      {{> afQuickField name='body' rows=6 value="Write your comment here"}}
+      {{> afQuickField name='docid' value=docid type="hidden"}}
+      {{> afQuickField name='owner' value=123 type="hidden"}}
+
+    </fieldset>
+    <button type="submit" class="btn btn-primary">Insert</button>
+  {{/autoForm}}
 </template>

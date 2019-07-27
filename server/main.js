@@ -1,19 +1,28 @@
 Meteor.startup(function () {
-    // create a starter doc
-    if (!Documents.findOne()){// no documents yet!
-        Documents.insert({title:"my new document"});
-    }
+  // create a starter doc if necessary
+  if (!Documents.findOne()){// no documents yet!
+      Documents.insert({title:"my new document"});
+  }
+});
+
+
+// publish read access to collections
+
+// all visible docs 
+Meteor.publish("documents", function(){
+  return Documents.find({
+   $or:[
+    {isPrivate:{$ne:true}}, 
+    {owner:this.userId}
+    ] 
   });
-  // publish a list of documents the user can se
-  Meteor.publish("documents", function(){
-    return Documents.find({
-     $or:[
-      {isPrivate:{$ne:true}}, 
-      {owner:this.userId}
-      ] 
-    });
-  })  
-  // public sets of editing users
-  Meteor.publish("editingUsers", function(){
-    return EditingUsers.find();
-  })
+})  
+// users editing docs
+Meteor.publish("editingUsers", function(){
+  return EditingUsers.find();
+})
+
+// coments on docs
+Meteor.publish("comments", function(){
+  return Comments.find();
+})
