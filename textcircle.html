@@ -4,6 +4,7 @@
 
 <body>
   {{> navbar}}
+
   <div class="container top-margin">
 
     <div class="row">
@@ -26,45 +27,46 @@
         {{> viewer}}
       </div>
     </div>
-	</div>
+  </div>
 </body>
 
-<template name="navbar">
-  <nav class="navbar navbar-default navbar-fixed-top">
+<template name="navbar">  
+<nav class="navbar navbar-default navbar-fixed-top">
       <div class="container">
         <a class="navbar-brand" href="#">TextCircle</a>
-
         <ul class="nav navbar-nav">
           <li>
             <a href="#" class="js-add-doc">
-              <span class="glyphicon glyphicon-plus" area-hidden="true"></span>
-              new docemnet
-            </a>
+              <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+              new document
+            </a> 
           </li>
 
-          <!--drop down-->
+
+          <!-- drop down list -->
           <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Documents<span class="caret"></span></a>
-            <ul class="dropdown-menu">
-              {{#each documents}}
-              <li><a href="#" class="js-load-doc">{{title}}</a></li>
-              {{/each}}
-            </ul>
-          </li>
-          <!--end of drop down>
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Documents <span class="caret"></span></a>
 
-
-
+          <ul class="dropdown-menu">
+            {{#each documents}}
+            <li><a href="#" class="js-load-doc">{{title}}</a></li>
+            {{/each}}
+          </ul>
+        </li>
+          <!-- end drop down list -->
         </ul>
-        <p class="navbar-text navbar-right">
-          {{> loginButtons align="right"}}
-        </p>
+        <div class="nav navbar-right">
+        <div class="navbar-text">
+            {{> loginButtons align="right"}}
+
+        </div>   
+        </div>       
       </div> <!-- / nav container -->
   </nav> 
 </template>
 
 
-<template name="editor">	
+<template name="editor">  
       {{>sharejsCM docid=docid onRender=config id="editor" mode="javascript"}}
 </template>
 
@@ -74,9 +76,17 @@
   </iframe>
 </template>
 
-<template name="docMeta">
+<template name="docMeta"> 
   {{#with document}}
-  <span class="h1">{{> editableText collection="documents" field="title"}}</span>
+  <span class="h1"> {{> editableText collection="documents" field="title"}}</span>
+  {{#if canEdit}}
+  <div class="checkbox">
+      <label>
+        <input type="checkbox" class="js-tog-private">Private
+      </label>
+  </div>
+  {{/if}}
+
   {{/with}}
 </template>
 
@@ -87,5 +97,3 @@
    
   {{/each}}
 </template>
-
-

@@ -1,30 +1,26 @@
-// this collection stores all the documents 
+// documents collection
 this.Documents = new Mongo.Collection("documents");
-// this collection stores sets of users that are editing documents
+// editing users collection
 EditingUsers = new Mongo.Collection("editingUsers");
 
 if (Meteor.isClient) {
-  // return the id of the first document you can find
+  // subscriptions - allow read access to collections 
+  Meteor.subscribe("documents");
+  Meteor.subscribe("editingUsers");
+  
   Template.editor.helpers({
+    // return the id of the currently loaded doc
     docid:function(){
       setupCurrentDocument();
       return Session.get("docid");
-      if (doc){
-        return doc._id;
-      }
-      else {
-        return undefined;
-      }
     }, 
     // configure the CodeMirror editor
     config:function(){
       return function(editor){
         editor.setOption("lineNumbers", true);
         editor.setOption("theme", "cobalt");
-        // set a callback that gets triggered whenever the user
-        // makes a change in the code editing window
+          // respond to edits in the code editor window
         editor.on("change", function(cm_editor, info){
-          // send the current code over to the iframe for rendering
           $("#viewer_iframe").contents().find("html").html(cm_editor.getValue());
           Meteor.call("addEditingUser");
         });        
@@ -33,7 +29,7 @@ if (Meteor.isClient) {
   });
 
   Template.editingUsers.helpers({
-    // retrieve a set of users that are editing this document
+    // return users editing current document
     users:function(){
       var doc, eusers, users;
       doc = Documents.findOne();
@@ -50,88 +46,137 @@ if (Meteor.isClient) {
     }
   })
 
-Template.navbar.helpers({
-  documents:function(){
-    return Documents.find({});
-  }
-})
-
-Template.docMeta.helpers({
-  document:function(){
-    return Documents.findOne({_id:get("docid")})
-  }
-})
-
-Template.editableText.helpers.({
-  userCanEdit:function(doc,Collection){
-    doc = Documents.findOne({_id:Session.get("docid"), owner:Meteor.userId()})  ;
-    if(doc){
-      return true;
+  Template.navbar.helpers({
+    // return a list of all visible documents
+    documents:function(){
+      return Documents.find();
     }
-    else{
+  })
+
+  Template.docMeta.helpers({
+    // return current document 
+    document:function(){
+      return Documents.findOne({_id:Session.get("docid")});
+    }, 
+    // return true if I am allowed to edit the current doc, false otherwise
+    canEdit:function(){
+      var doc;
+      doc = Documents.findOne({_id:Session.get("docid")});
+      if (doc){
+        if (doc.owner == Meteor.userId()){
+          return true;
+        }
+      }
       return false;
     }
-  }
-})
+  })
 
+  Template.editableText.helpers({
+    // return true if I am allowed to edit the current doc, false otherwise
+    userCanEdit : function(doc,Collection) {
+      // can edit if the current doc is owned by me.
+      doc = Documents.findOne({_id:Session.get("docid"), owner:Meteor.userId()});
+      if (doc){
+        return true;
+      }
+      else {
+        return false;
+      }
+    }    
+  })
 
-/////////
-////events
-/////////
-Template.navbar.events({
-  "click .js-add-doc":function(event){
-    event.preventDefault();
-    console.log("add new doc")
-    if(!Meteor.users()){ user is not logged in
-      alert("You need to login")
+  /////////
+  /// EVENTS
+  ////////
+
+  Template.navbar.events({
+    // add a new document button
+    "click .js-add-doc":function(event){
+      event.preventDefault();
+      console.log("Add a new doc!");
+      if (!Meteor.user()){// user not available
+          alert("You need to login first!");
+      }
+      else {
+        // they are logged in... lets insert a doc
+        var id = Meteor.call("addDoc", function(err, res){
+          if (!err){// all good
+            console.log("event callback received id: "+res);
+            Session.set("docid", res);            
+          }
+        });
+      }
+    }, 
+    // load a document link
+    "click .js-load-doc":function(event){
+      //console.log(this);
+      Session.set("docid", this._id);
     }
-    else {
-      //they are logged in... lets insert a doc
-      var id = Meteor.call("addDoc",function(err,res){
-        if(!err){//all goood
-             console.log("event callback got an id back"+res);
-             Session.set("docid",res);
-        }
-      })
+  })
+
+  Template.docMeta.events({
+    // toggle the private checkbox
+    "click .js-tog-private":function(event){
+      console.log(event.target.checked);
+      var doc = {_id:Session.get("docid"), isPrivate:event.target.checked};
+      Meteor.call("updateDocPrivacy", doc);
+
     }
-  }
-  
-  "click .js-load-doc":function(event){
-    Session.set("docid",res);
-  }
-})
+  })
 
 
 }// end isClient...
 
 if (Meteor.isServer) {
   Meteor.startup(function () {
-    // insert a document if there isn't one already
+    // create a starter doc
     if (!Documents.findOne()){// no documents yet!
         Documents.insert({title:"my new document"});
     }
   });
+  // publish a list of documents the user can se
+  Meteor.publish("documents", function(){
+    return Documents.find({
+     $or:[
+      {isPrivate:false}, 
+      {owner:this.userId}
+      ] 
+    });
+  })  
+  // public sets of editing users
+  Meteor.publish("editingUsers", function(){
+    return EditingUsers.find();
+  })
+
 }
-// methods that provide write access to the data
+
 Meteor.methods({
-  //adding new documents
+  // method to add a new document
   addDoc:function(){
     var doc;
-    if(!this.userId){//not logged in
+    if (!this.userId){// not logged in
       return;
     }
-    else{
-      doc = {owner:this.userId, createdOn: new Date(), title:"my new doc"};
+    else {
+      doc = {owner:this.userId, createdOn:new Date(), 
+            title:"my new doc"};
       var id = Documents.insert(doc);
-      console.log("adddoc docid"+id);
+      console.log("addDoc method: got an id "+id);
       return id;
     }
+  }, 
+  // method to change privacy flag on a docuement
+  updateDocPrivacy:function(doc){
+    console.log("updateDocPrivacy method");
+    console.log(doc);
+    var realDoc = Documents.findOne({_id:doc._id, owner:this.userId});
+    if (realDoc){
+      realDoc.isPrivate = doc.isPrivate;
+      Documents.update({_id:doc._id}, realDoc);
+    }
+
   },
-
-
-
-
-  // allows changes to the editing users collection 
+  // method to add editing suers to a document
   addEditingUser:function(){
     var doc, user, eusers;
     doc = Documents.findOne();
@@ -140,7 +185,7 @@ Meteor.methods({
     // now I have a doc and possibly a user
     user = Meteor.user().profile;
     eusers = EditingUsers.findOne({docid:doc._id});
-    if (!eusers){// no editing users have been stored yet
+    if (!eusers){
       eusers = {
         docid:doc._id, 
         users:{}, 
@@ -148,27 +193,22 @@ Meteor.methods({
     }
     user.lastEdit = new Date();
     eusers.users[this.userId] = user;
-    // upsert- insert or update if filter matches
+
     EditingUsers.upsert({_id:eusers._id}, eusers);
   }
 })
-
+// handy function that makes sure we have a document to work on
 function setupCurrentDocument(){
   var doc;
-  if(!session.get(docid)){ //no docid set yet
+  if (!Session.get("docid")){// no doc id set yet
     doc = Documents.findOne();
-    if(doc){
+    if (doc){
       Session.set("docid", doc._id);
     }
-
   }
 }
-
-
-
-
-// this renames object keys by removing hyphens to make the compatible 
-// with spacebars. 
+// function to change object keys by removing hyphens to make them 
+// compatible with space bars. 
 function fixObjectKeys(obj){
   var newObj = {};
   for (key in obj){
@@ -177,9 +217,3 @@ function fixObjectKeys(obj){
   }
   return newObj;
 }
-
-  
-
-
-
-
