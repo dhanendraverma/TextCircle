@@ -25,9 +25,9 @@ Meteor.methods({
 
   },
   // method to add editing suers to a document
-  addEditingUser:function(){
+  addEditingUser:function(docid){
     var doc, user, eusers;
-    doc = Documents.findOne();
+    doc = Documents.findOne({_id:docid});
     if (!doc){return;}// no doc give up
     if (!this.userId){return;}// no logged in user give up
     // now I have a doc and possibly a user
