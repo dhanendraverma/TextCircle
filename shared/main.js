@@ -1,4 +1,12 @@
 Meteor.methods({
+  addComment:function(comment){
+    if(this.userId){
+      comment.createdOn = new Date();
+      comment.userId = this.userId;
+      return Comments.insert(comment);
+    }
+    return;
+  },
   // method to add a new document
   addDoc:function(){
     var doc;
