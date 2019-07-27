@@ -2,6 +2,10 @@
 Meteor.subscribe("documents");
 Meteor.subscribe("editingUsers");
 
+Router.configure({
+  layoutTemplate: 'ApplicationLayout'
+})
+
 Template.editor.helpers({
   // return the id of the currently loaded doc
   docid:function(){

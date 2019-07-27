@@ -26,3 +26,4 @@ shell-server
 stylus
 ian:accounts-ui-bootstrap-3
 babrahams:editable-text
+iron:router
